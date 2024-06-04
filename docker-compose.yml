@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+  backend:
+    build: backend
+    depends_on:
+      - db
+#      - redis
+    volumes:
+      - ./:/code:ro
+    environment:
+      - DATABASE_URL=postgresql://anastasiya:Anastasiya1@db:5432/chicken_counting
+    ports:
+      - "9032:8000"
+#    extra_hosts:
+#      - "host.docker.internal:host-gateway"
+
+    container_name: backend
+
+  frontend:
+    build: frontend
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+    restart: always
+    ports:
+      - "9031:9031"
+
+    container_name: frontend
+
+  db:
+    image: postgres:16-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=anastasiya
+      - POSTGRES_PASSWORD=Anastasiya1
+      - POSTGRES_DB=chicken_counting
+
+
+volumes:
+  postgres_data:

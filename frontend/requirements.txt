@@ -1,0 +1,10 @@
+streamlit
+streamlit_webrtc
+av
+aiortc
+ultralytics==8.2.16
+streamlit-image-coordinates==0.1.6
+st-pages==0.4.5
+opencv-python
+streamlit-drawable-canvas
+fastapi
