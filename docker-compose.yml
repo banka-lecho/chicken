@@ -5,15 +5,12 @@ services:
     build: backend
     depends_on:
       - db
-#      - redis
     volumes:
       - ./:/code:ro
     environment:
       - DATABASE_URL=postgresql://anastasiya:Anastasiya1@db:5432/chicken_counting
     ports:
-      - "9032:8000"
-#    extra_hosts:
-#      - "host.docker.internal:host-gateway"
+      - "9032:9032"
 
     container_name: backend
 
