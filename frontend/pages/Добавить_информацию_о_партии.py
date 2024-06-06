@@ -55,39 +55,40 @@ else:
     if response_camera.status_code == 200:
         sources = response_camera.json()
         sources = [(camera['name'], camera['rtsp_stream']) for camera in sources['cameras']]
-        # stream_address = str(sources[0][0])
-        stream_address = str(settings.VIDEO_PATH)
+        stream_address = str(sources[0][1])
+        # stream_address = str(settings.VIDEO_PATH)
         st.sidebar.write(f'КАМЕРА: {str(sources[0][0])}')
         submit_button = st.sidebar.button('ПОДКЛЮЧИТЬСЯ К КАМЕРЕ')
         st_empty = st.empty()
         submit_button_count = None
 
         if submit_button:
+            if not df_chickens.empty:
                 if batch_id in df_chickens['batch_id'].values:
                     st.markdown(
                         "<span style='color:red'>Поле с данным номером партии уже существует. Добавьте другой номер или отредактируйте поле.</span>",
                         unsafe_allow_html=True)
+            else:
+                st_empty.markdown("<span style='color:red'>ИДЁТ ПОДКЛЮЧЕНИЕ...</span>", unsafe_allow_html=True)
+                time.sleep(2)
+                st_empty.markdown("<span style='color:green'>ПОДКЛЮЧЕНИЕ ЕСТЬ</span>", unsafe_allow_html=True)
+                time.sleep(3)
+                count_chickens, start, finish = helper.run_counting(model, stream_address)
+                start = start.strftime("%Y-%m-%d %H:%M:%S")
+                finish = finish.strftime("%Y-%m-%d %H:%M:%S")
+                response = requests.post('http://backend:9032/chickens/',
+                                         json={"batch_id": batch_id, "start_time": start,
+                                               "end_time": finish, "line_number": line_number,
+                                               "machine_id": number_machine,
+                                               "count": count_chickens, "cross_": cross_})
+                if response.status_code == 200:
+                    st.markdown("<span style='color:green'>Запрос на добавление отправлен успешно</span>",
+                                unsafe_allow_html=True)
                 else:
-                    st_empty.markdown("<span style='color:red'>ИДЁТ ПОДКЛЮЧЕНИЕ...</span>", unsafe_allow_html=True)
-                    time.sleep(2)
-                    st_empty.markdown("<span style='color:green'>ПОДКЛЮЧЕНИЕ ЕСТЬ</span>", unsafe_allow_html=True)
-                    time.sleep(3)
-                    count_chickens, start, finish = helper.run_counting(model, stream_address)
-                    start = start.strftime("%Y-%m-%d %H:%M:%S")
-                    finish = finish.strftime("%Y-%m-%d %H:%M:%S")
-                    response = requests.post('http://backend:9032/chickens/',
-                                             json={"batch_id": batch_id, "start_time": start,
-                                                   "end_time": finish, "line_number": line_number,
-                                                   "machine_id": number_machine,
-                                                   "count": count_chickens, "cross_": cross_})
-                    if response.status_code == 200:
-                        st.markdown("<span style='color:green'>Запрос на добавление отправлен успешно</span>",
-                                    unsafe_allow_html=True)
-                    else:
-                        st.markdown("<span style='color:red'>Не удалось отправить запрос на добавление</span>",
-                                    unsafe_allow_html=True)
-                        st.write(response.status_code)
-                        st.write(response.text)
+                    st.markdown("<span style='color:red'>Не удалось отправить запрос на добавление</span>",
+                                unsafe_allow_html=True)
+                    st.write(response.status_code)
+                    st.write(response.text)
 
     else:
         st.write('Failed to get sources')
