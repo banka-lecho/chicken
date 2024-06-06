@@ -31,17 +31,20 @@ if submit_button:
     if batch_id == "" or field == "" or new_value == "":
         st.write("Заполните все поля")
     else:
-        if batch_id in df['batch_id'].values:
-            response = requests.put(f'http://backend:9032/chickens/{str(batch_id)}/{str(field)}/{str(new_value)}',
-                                    json={"batch_id": batch_id, "field": field, "new_value": new_value})
-            if response.status_code == 200:
-                st.markdown("<span style='color:green'>Запрос на изменение отправлен успешно</span>",
-                                    unsafe_allow_html=True)
+        if not df.empty:
+            if batch_id in df['batch_id'].values:
+                response = requests.put(f'http://backend:9032/chickens/{str(batch_id)}/{str(field)}/{str(new_value)}',
+                                        json={"batch_id": batch_id, "field": field, "new_value": new_value})
+                if response.status_code == 200:
+                    st.markdown("<span style='color:green'>Запрос на изменение отправлен успешно</span>",
+                                unsafe_allow_html=True)
+                else:
+                    st.markdown("<span style='color:red'>Не удалось отправитиь запрос на изменение</span>",
+                                unsafe_allow_html=True)
             else:
-            	st.markdown("<span style='color:red'>Не удалось отправитиь запрос на изменение</span>",
-                                    unsafe_allow_html=True)
+                st.write('Данного номера партии нет в таблице базы данных')
+                st.markdown("<span style='color:red'>Данного номера партии нет в таблице базы данных</span>",
+                            unsafe_allow_html=True)
         else:
-            st.write('Данного номера партии нет в таблице базы данных')
-            st.markdown("<span style='color:red'>Данного номера партии нет в таблице базы данных</span>",
-                                    unsafe_allow_html=True)
-
+            st.markdown("<span style='color:red'>Таблица с данными пуста. Добавьте информацию о партии.</span>",
+                        unsafe_allow_html=True)
