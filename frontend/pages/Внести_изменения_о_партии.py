@@ -14,7 +14,6 @@ if not check_password():
 response = requests.get('http://backend:9032/chickens/')
 data = response.json()['chickens']
 df = pd.DataFrame(data)
-st.dataframe(df)
 with st.form(key="change_field"):
     batch_id = st.text_input("Введите номер партии")
     fields_dict = {
