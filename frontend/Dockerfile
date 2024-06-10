@@ -3,6 +3,7 @@ FROM python:3.11
 COPY requirements.txt app/requirements.txt
 WORKDIR /app
 
+FROM nvidia/cuda:12.2-base-ubuntu20.04
 RUN pip install -r requirements.txt
 RUN pip install supervision
 RUN pip install streamlit_drawable_canvas
