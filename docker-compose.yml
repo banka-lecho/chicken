@@ -37,6 +37,11 @@ services:
       - POSTGRES_PASSWORD=Anastasiya1
       - POSTGRES_DB=chicken_counting
 
-
+  nvsmi:
+    image: ubuntu:20.04
+    runtime: nvidia
+    environment:
+     - NVIDIA_VISIBLE_DEVICES=ALL
+    command: nvidia-smi
 volumes:
   postgres_data:
