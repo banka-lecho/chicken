@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from fastapi import FastAPI
 import streamlit as st
-
+import tensorflow as tf
 import datetime
 
 app = FastAPI()
@@ -14,7 +14,6 @@ first_interval_arr = np.array([False, False, False])
 second_interval_arr = np.array([False, False, False])
 front_chiken = np.array([False, False, False])
 image_size = (1920, 1080)
-
 
 class Counter:
     def __init__(self, model, input_path, size_interval):
@@ -129,7 +128,7 @@ class Counter:
     def check_chicken_behind(self, front_chic_center, index_interval, boxes):
         """Сheck if there is a chicken in behind"""
         for box in boxes:
-            if box.conf[0] > 0.4:
+            if box.conf[0] > 0.6:
                 behind_chic_center, y, _, _ = box.xywh[0]
                 line = self.check_lines(y)
                 if (0 < front_chic_center - behind_chic_center < 700) and line == index_interval:
@@ -139,7 +138,7 @@ class Counter:
     def check_chicken_front(self, front_chic_center, index_interval, boxes):
         """Сheck if there is a chicken in front"""
         for box in boxes:
-            if box.conf[0] > 0.4:
+            if box.conf[0] > 0.6:
                 behind_chic_center, y, _, _ = box.xywh[0]
                 line = self.check_lines(y)
                 if (700 < front_chic_center - behind_chic_center < 0) and line == index_interval:
@@ -220,7 +219,7 @@ class Counter:
 
         return frame, count_chicken
 
-    def detection_frames_chickens(self):
+    def display_video(self):
         count_chicken_sec = 0
         count_chicken_min = 0
         frame_count = 0
@@ -230,38 +229,39 @@ class Counter:
         st_frame_image = st.empty()
         st_frame_text = st.empty()
         start = datetime.datetime.now()
-        while True:
-            ret, imageFrame = self.webcam.read()
-            if not ret or frame_count >= 50:
-                finish = datetime.datetime.now()
-                return all_count, start, finish
+        if st.session_state.clicked[2]:
+            while st.session_state.clicked[2]:
+                ret, imageFrame = self.webcam.read()
+                if not ret:
+                    return all_count, 1
 
-            imageFrame, count = self.draw_contours(imageFrame, frame_count)
-            all_count += count
-            count_chicken_sec += count
-            count_chicken_min += count
+                imageFrame, count = self.draw_contours(imageFrame, frame_count)
+                all_count += count
+                count_chicken_sec += count
+                count_chicken_min += count
 
-            if frame_count % int(self.fps) == 0:
-                speed_second = count_chicken_sec
-                count_chicken_min += count_chicken_sec
-                count_chicken_sec = 0
+                if frame_count % int(self.fps) == 0:
+                    speed_second = count_chicken_sec
+                    count_chicken_min += count_chicken_sec
+                    count_chicken_sec = 0
 
-            if frame_count % int(self.fpm) == 0:
-                count_chicken_min = all_count
-                speed_minute += count_chicken_min
-                count_chicken_min = 0
+                if frame_count % int(self.fpm) == 0:
+                    count_chicken_min = all_count
+                    speed_minute += count_chicken_min
+                    count_chicken_min = 0
 
-            imageFrame = self.speed(imageFrame, speed_second, speed_minute, all_count, frame_count)
-            frame_count += 1
-            st_frame_text.text(
-                f'КОЛИЧЕСТВО ЦЫПЛЯТ В МИНУТУ: {speed_minute}\nКОЛИЧЕСТВО ЦЫПЛЯТ В СЕКУНДУ: {speed_second}\nОБЩЕЕ КОЛИЧЕСТВО ЦЫПЛЯТ: {all_count} ')
-            st_frame_image.image(imageFrame,
-                                 caption='Detected Video',
-                                 channels="BGR",
-                                 use_column_width=True, width=500)
+                imageFrame = self.speed(imageFrame, speed_second, speed_minute, all_count, frame_count)
+                frame_count += 1
+                st_frame_text.text(
+                    f'КОЛИЧЕСТВО ЦЫПЛЯТ В МИНУТУ: {speed_minute}\nКОЛИЧЕСТВО ЦЫПЛЯТ В СЕКУНДУ: {speed_second}\nОБЩЕЕ КОЛИЧЕСТВО ЦЫПЛЯТ: {all_count} ')
+                st_frame_image.image(imageFrame,
+                                     caption='Detected Video',
+                                     channels="BGR",
+                                     use_column_width=True, width=50)
+            return all_count, 0
 
 
 def run_counting(model, input_path):
     counter = Counter(model, input_path, 120)
-    count, start, finish = counter.detection_frames_chickens()
-    return count, start, finish
+    count, end_of_stream = counter.display_video()
+    return count, end_of_stream
