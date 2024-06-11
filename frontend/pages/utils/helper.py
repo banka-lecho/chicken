@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from fastapi import FastAPI
 import streamlit as st
-import datetime
+import time
 
 app = FastAPI()
 
@@ -227,7 +227,6 @@ class Counter:
         all_count = 0
         st_frame_image = st.empty()
         st_frame_text = st.empty()
-        start = datetime.datetime.now()
         if st.session_state.clicked[2]:
             while st.session_state.clicked[2]:
                 ret, imageFrame = self.webcam.read()
