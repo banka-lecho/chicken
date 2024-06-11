@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 from fastapi import FastAPI
 import streamlit as st
-import tensorflow as tf
 import datetime
 
 app = FastAPI()
@@ -233,7 +232,12 @@ class Counter:
             while st.session_state.clicked[2]:
                 ret, imageFrame = self.webcam.read()
                 if not ret:
-                    return all_count, 1
+                    self.webcam.release()
+                    time.sleep(10)
+                    ret, imageFrame = self.webcam.read()
+                    if not ret:
+                        self.webcam.release()
+                        return all_count, 1
 
                 imageFrame, count = self.draw_contours(imageFrame, frame_count)
                 all_count += count
@@ -258,6 +262,7 @@ class Counter:
                                      caption='Detected Video',
                                      channels="BGR",
                                      use_column_width=True, width=50)
+            self.webcam.release()
             return all_count, 0
 
 
