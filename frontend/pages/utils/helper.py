@@ -236,7 +236,7 @@ class Counter:
                     ret, imageFrame = self.webcam.read()
                     if not ret:
                         self.webcam.release()
-                        return all_count, 1
+                        return all_count
 
                 imageFrame, count = self.draw_contours(imageFrame, frame_count)
                 all_count += count
@@ -261,11 +261,12 @@ class Counter:
                                      caption='Detected Video',
                                      channels="BGR",
                                      use_column_width=True, width=50)
+            st.session_state.all_count = count
             self.webcam.release()
-            return all_count, 0
+            return all_count
 
 
 def run_counting(model, input_path):
     counter = Counter(model, input_path, 120)
-    count, end_of_stream = counter.display_video()
-    return count, end_of_stream
+    count = counter.display_video()
+    return count
