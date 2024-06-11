@@ -11,15 +11,22 @@ services:
       - DATABASE_URL=postgresql://anastasiya:Anastasiya1@db:5432/chicken_counting
     ports:
       - "9032:9032"
-
     container_name: backend
 
   frontend:
     build: frontend
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [ gpu ]
     depends_on:
       - backend
     volumes:
       - ./frontend:/app
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
     restart: always
     ports:
       - "9031:9031"
@@ -37,11 +44,5 @@ services:
       - POSTGRES_PASSWORD=Anastasiya1
       - POSTGRES_DB=chicken_counting
 
-  nvsmi:
-    image: ubuntu:20.04
-    runtime: nvidia
-    environment:
-     - NVIDIA_VISIBLE_DEVICES=ALL
-    command: nvidia-smi
 volumes:
   postgres_data:
