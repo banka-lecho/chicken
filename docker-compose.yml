@@ -15,18 +15,18 @@ services:
 
   frontend:
     build: frontend
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              capabilities: [ gpu ]
+#    deploy:
+#      resources:
+#        reservations:
+#          devices:
+#            - driver: nvidia
+#              capabilities: [ gpu ]
     depends_on:
       - backend
     volumes:
       - ./frontend:/app
-    environment:
-      - NVIDIA_VISIBLE_DEVICES=all
+#    environment:
+#      - NVIDIA_VISIBLE_DEVICES=all
     restart: always
     ports:
       - "9031:9031"

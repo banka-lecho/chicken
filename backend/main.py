@@ -78,6 +78,7 @@ def count_period(start_time: str, end_time: str, db: Session = Depends(get_db)):
     total = count.scalar()
     return {"count": total}
 
+
 @app.put("/camera/{camera_id}")
 def update_camera(camera_id: int, camera: Camera, db: Session = Depends(get_db)):
     """Изменение информации о камере"""
