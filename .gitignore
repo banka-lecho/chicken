@@ -1,2 +1,9 @@
+#all .DS_Store
+.DS_Store
+frontend/.DS_Store
+frontend/counter/.DS_Store
+frontend/pages/.DS_Store
+frontend/pages/utils/.DS_Store
+
 .idea
-backend/counter/yolo
+frontend/counter/yolo

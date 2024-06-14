@@ -15,22 +15,23 @@ services:
 
   frontend:
     build: frontend
-#    deploy:
-#      resources:
-#        reservations:
-#          devices:
-#            - driver: nvidia
-#              capabilities: [ gpu ]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
     depends_on:
       - backend
     volumes:
       - ./frontend:/app
-#    environment:
-#      - NVIDIA_VISIBLE_DEVICES=all
+      - ./backend:/counter/helper
     restart: always
     ports:
       - "9031:9031"
-
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
     container_name: frontend
 
   db:

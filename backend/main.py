@@ -23,6 +23,13 @@ def get_chickens(db: Session = Depends(get_db)):
     return {"chickens": chickens}
 
 
+@app.get("/chickens/{batch_id}")
+def get_batch_info(batch_id: str, db: Session = Depends(get_db)):
+    """Просмотр параметров партии по batch_id"""
+    batch_info = db.query(models.Chickens).get(batch_id)
+    return {"batch_info": batch_info}
+
+
 @app.post("/chickens/")
 def add_chikens(new_chickens: Chickens, db: Session = Depends(get_db)):
     db_chikens = models.Chickens(**new_chickens.dict())
@@ -46,6 +53,18 @@ def update_chickens(batch_id: str, field: str, new_value: str, db: Session = Dep
             row.cross_ = new_value
         else:
             return {'error': 'Поле не найдено'}
+        db.commit()
+        return {"message": "Chicken's information added successfully"}
+    raise HTTPException(status_code=404, detail="Chicken information not found")
+
+
+@app.put("/chickens/{start}/{end}/")
+def update_time(batch_id: str, start: str, end: str, db: Session = Depends(get_db)):
+    """Изменение времени начала и окончания"""
+    row = db.query(models.Chickens).get(batch_id)
+    if row:
+        row.start_time = start
+        row.end_time = end
         db.commit()
         return {"message": "Chicken's information added successfully"}
     raise HTTPException(status_code=404, detail="Chicken information not found")

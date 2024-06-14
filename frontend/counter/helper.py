@@ -3,6 +3,8 @@ import numpy as np
 from fastapi import FastAPI
 import streamlit as st
 import time
+import torch
+from counter.yolo.model import YOLO
 
 app = FastAPI()
 
@@ -13,6 +15,7 @@ first_interval_arr = np.array([False, False, False])
 second_interval_arr = np.array([False, False, False])
 front_chiken = np.array([False, False, False])
 image_size = (1920, 1080)
+
 
 class Counter:
     def __init__(self, model, input_path, size_interval):
@@ -224,49 +227,56 @@ class Counter:
         frame_count = 0
         speed_second = 0
         speed_minute = 0
-        all_count = 0
+        all_count = 6
         st_frame_image = st.empty()
         st_frame_text = st.empty()
-        if st.session_state.clicked[2]:
-            while st.session_state.clicked[2]:
+        count = 0
+        while st.session_state.video_running:
+            ret, imageFrame = self.webcam.read()
+            if not ret:
+                self.webcam.release()
+                time.sleep(10)
                 ret, imageFrame = self.webcam.read()
                 if not ret:
                     self.webcam.release()
-                    time.sleep(10)
-                    ret, imageFrame = self.webcam.read()
-                    if not ret:
-                        self.webcam.release()
-                        return all_count
+                    return all_count
 
-                imageFrame, count = self.draw_contours(imageFrame, frame_count)
-                all_count += count
-                count_chicken_sec += count
-                count_chicken_min += count
+            imageFrame, count = self.draw_contours(imageFrame, frame_count)
+            all_count += count
+            st.session_state.all_count = all_count
+            count_chicken_sec += count
+            count_chicken_min += count
 
-                if frame_count % int(self.fps) == 0:
-                    speed_second = count_chicken_sec
-                    count_chicken_min += count_chicken_sec
-                    count_chicken_sec = 0
+            if frame_count % int(self.fps) == 0:
+                speed_second = count_chicken_sec
+                count_chicken_min += count_chicken_sec
+                count_chicken_sec = 0
 
-                if frame_count % int(self.fpm) == 0:
-                    count_chicken_min = all_count
-                    speed_minute += count_chicken_min
-                    count_chicken_min = 0
+            if frame_count % int(self.fpm) == 0:
+                count_chicken_min = all_count
+                speed_minute += count_chicken_min
+                count_chicken_min = 0
 
-                imageFrame = self.speed(imageFrame, speed_second, speed_minute, all_count, frame_count)
-                frame_count += 1
-                st_frame_text.text(
-                    f'КОЛИЧЕСТВО ЦЫПЛЯТ В МИНУТУ: {speed_minute}\nКОЛИЧЕСТВО ЦЫПЛЯТ В СЕКУНДУ: {speed_second}\nОБЩЕЕ КОЛИЧЕСТВО ЦЫПЛЯТ: {all_count} ')
-                st_frame_image.image(imageFrame,
-                                     caption='Detected Video',
-                                     channels="BGR",
-                                     use_column_width=True, width=50)
-            st.session_state.all_count = count
-            self.webcam.release()
-            return all_count
+            imageFrame = self.speed(imageFrame, speed_second, speed_minute, all_count, frame_count)
+            frame_count += 1
+            st_frame_text.text(
+                f'КОЛИЧЕСТВО ЦЫПЛЯТ В МИНУТУ: {speed_minute}\nКОЛИЧЕСТВО ЦЫПЛЯТ В СЕКУНДУ: {speed_second}\nОБЩЕЕ КОЛИЧЕСТВО ЦЫПЛЯТ: {all_count} ')
+            st_frame_image.image(imageFrame,
+                                 caption='Detected Video',
+                                 channels="BGR",
+                                 use_column_width=True, width=50)
+        self.webcam.release()
 
 
-def run_counting(model, input_path):
-    counter = Counter(model, input_path, 120)
-    count = counter.display_video()
-    return count
+def run_counting(model_path, input_path):
+    try:
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        model = YOLO(model_path)
+        model.to(device)
+
+        counter = Counter(model, input_path, 120)
+        counter.display_video()
+
+    except Exception as ex:
+        st.error(f"Не удалось загрузить модель детекции. Проверьте путь: {model_path}")
+        st.error(ex)
