@@ -38,7 +38,7 @@ if submit_button:
                     st.markdown("<span style='color:green'>Запрос на изменение отправлен успешно</span>",
                                 unsafe_allow_html=True)
                 else:
-                    st.markdown("<span style='color:red'>Не удалось отправитиь запрос на изменение</span>",
+                    st.markdown("<span style='color:red'>Не удалось отправить запрос на изменение</span>",
                                 unsafe_allow_html=True)
             else:
                 st.write('Данного номера партии нет в таблице базы данных')
