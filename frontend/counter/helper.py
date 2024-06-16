@@ -127,27 +127,27 @@ class Counter:
         elif 0 <= center_y < self.divide_to_three - 300:
             return 2
 
-    def check_chicken_behind(self, front_chic_center, index_interval, boxes):
+    def check_chicken_behind(self, front_chic_center, index_interval, boxes, area):
         """Сheck if there is a chicken in behind"""
         for box in boxes:
-            if box.conf[0] > 0.6:
+            if box.conf[0] > 0.4 and self.full_area / area > 8:
                 behind_chic_center, y, _, _ = box.xywh[0]
                 line = self.check_lines(y)
                 if (0 < front_chic_center - behind_chic_center < 700) and line == index_interval:
                     return True
         return False
 
-    def check_chicken_front(self, front_chic_center, index_interval, boxes):
+    def check_chicken_front(self, front_chic_center, index_interval, boxes, area):
         """Сheck if there is a chicken in front"""
         for box in boxes:
-            if box.conf[0] > 0.6:
+            if box.conf[0] > 0.4 and self.full_area / area > 8:
                 behind_chic_center, y, _, _ = box.xywh[0]
                 line = self.check_lines(y)
                 if (700 < front_chic_center - behind_chic_center < 0) and line == index_interval:
                     return True
         return False
 
-    def draw_contours(self, frame, frame_count):
+    def draw_contours_and_count(self, frame, frame_count):
         """Draw contours of object on video"""
         count_chicken = 0
         results = self.model.predict(frame, save=False, verbose=False)
@@ -157,18 +157,18 @@ class Counter:
                 confidence = box.conf[0]
                 cx, cy, w, h = box.xywh[0]
                 cx, cy, w, h = int(cx), int(cy), int(w), int(h)
-                if confidence > 0.4:
+                area = w * h
+                if confidence > 0.4 and self.full_area / area > 8:
                     frame = cv2.rectangle(frame,
                                           (cx - int(w / 2), cy - int(h / 2)),
                                           (cx - int(w / 2) + w, cy - int(h / 2) + h),
                                           (0, 255, 255),
                                           2
                                           )
-                    area = w * h
                     center1, center2 = (cy, cx) if self.height > self.width else (cx, cy)
                     self.draw_centers(frame, center1, center2, area)
                     index_interval = self.check_lines(center2)
-                    front_chiken[index_interval] = self.check_chicken_front(center1, index_interval, boxes)
+                    front_chiken[index_interval] = self.check_chicken_front(center1, index_interval, boxes, area)
 
                     if self.interval_second[0] < center1 and frame_count == 0:
                         count_chicken += 1
@@ -208,7 +208,7 @@ class Counter:
                                 second_interval_arr[index_interval] = True
                     else:
                         if self.interval_third[0] <= center1 <= self.interval_third[1]:
-                            behind_chicken = self.check_chicken_behind(center1, index_interval, boxes)
+                            behind_chicken = self.check_chicken_behind(center1, index_interval, boxes, area)
 
                             if behind_chicken and self.check_double_chic_first:
                                 first_interval_arr[index_interval] = True
@@ -227,10 +227,9 @@ class Counter:
         frame_count = 0
         speed_second = 0
         speed_minute = 0
-        all_count = 6
+        all_count = st.session_state.all_count
         st_frame_image = st.empty()
         st_frame_text = st.empty()
-        count = 0
         while st.session_state.video_running:
             ret, imageFrame = self.webcam.read()
             if not ret:
@@ -241,7 +240,7 @@ class Counter:
                     self.webcam.release()
                     return all_count
 
-            imageFrame, count = self.draw_contours(imageFrame, frame_count)
+            imageFrame, count = self.draw_contours_and_count(imageFrame, frame_count)
             all_count += count
             st.session_state.all_count = all_count
             count_chicken_sec += count
@@ -261,10 +260,12 @@ class Counter:
             frame_count += 1
             st_frame_text.text(
                 f'КОЛИЧЕСТВО ЦЫПЛЯТ В МИНУТУ: {speed_minute}\nКОЛИЧЕСТВО ЦЫПЛЯТ В СЕКУНДУ: {speed_second}\nОБЩЕЕ КОЛИЧЕСТВО ЦЫПЛЯТ: {all_count} ')
-            st_frame_image.image(imageFrame,
-                                 caption='Detected Video',
-                                 channels="BGR",
-                                 use_column_width=True, width=50)
+
+            if frame_count % 4 == 0:
+                st_frame_image.image(imageFrame,
+                                     caption='Detected Video',
+                                     channels="BGR",
+                                     use_column_width=True, width=50)
         self.webcam.release()
 
 
@@ -278,5 +279,5 @@ def run_counting(model_path, input_path):
         counter.display_video()
 
     except Exception as ex:
-        st.error(f"Не удалось загрузить модель детекции. Проверьте путь: {model_path}")
+        st.error(f"Не удалось загрузить модель детекции или недоступно ни CPU, ни GPU. Проверьте путь: {model_path}")
         st.error(ex)

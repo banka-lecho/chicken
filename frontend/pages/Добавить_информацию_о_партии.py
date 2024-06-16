@@ -22,9 +22,15 @@ st.set_page_config(
 st.title("Подсчёт объектов")
 st.sidebar.header("Детекция и подсчёт объектов")
 
+
 # аутентификация
 if not check_password():
     st.stop()
+
+
+def clicked(button):
+    st.session_state.clicked[button] = True
+
 
 # инициализация сессионных переменных
 if 'end_of_stream' not in st.session_state:
@@ -40,16 +46,13 @@ if 'video_running' not in st.session_state:
     st.session_state.video_running = False
 
 
-def clicked(button):
-    st.session_state.clicked[button] = True
-
-
 def send_message_clean_cache(message: str, clean_cache=False, color="red"):
     st.markdown(
         f"<span style='color:{color}'>{message}</span>", unsafe_allow_html=True)
     if clean_cache:
         for key in st.session_state.keys():
             del st.session_state[key]
+        st.stop()
 
 
 # Функция для запуска/остановки видеопотока
@@ -113,9 +116,10 @@ else:
                                              clean_cache=False,
                                              color="green")
                 else:
-                    send_message_clean_cache("Не удалось отправить запрос на первичное добавление.",
-                                             clean_cache=False,
-                                             color="red")
+                    send_message_clean_cache(
+                        "Не удалось отправить запрос на первичное добавление. Возможно произошла дупликация номера партии",
+                        clean_cache=True,
+                        color="red")
 
             if batch_id == "" or line_number == "" or cross_ == "" or number_machine == "":
                 send_message_clean_cache("Заполните все поля",
