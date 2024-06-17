@@ -22,7 +22,6 @@ st.set_page_config(
 st.title("Подсчёт объектов")
 st.sidebar.header("Детекция и подсчёт объектов")
 
-
 # аутентификация
 if not check_password():
     st.stop()
@@ -93,7 +92,8 @@ else:
         # stream_address = str(sources[0][1])
         stream_address = str(settings.VIDEO_PATH)
         st.sidebar.write(f'КАМЕРА: {str(sources[0][0])}')
-        submit_button = st.sidebar.button('ПОДКЛЮЧИТЬСЯ К КАМЕРЕ', on_click=clicked, args=[1])
+        submit_button = st.sidebar.button('ПОДКЛЮЧИТЬСЯ К КАМЕРЕ', on_click=clicked, args=[1],
+                                          disabled=st.session_state.clicked[1])
         st_empty = st.empty()
         submit_button_count = None
         model_path = Path(settings.DETECTION_MODEL)
@@ -168,4 +168,4 @@ else:
                                              clean_cache=True,
                                              color="red")
     else:
-        st.write('Failed to get sources')
+        st.error('Камера не доступна')
