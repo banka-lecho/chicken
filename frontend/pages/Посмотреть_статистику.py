@@ -11,6 +11,9 @@ st.title("Статистика по партиям")
 response = requests.get('http://backend:9032/chickens/')
 data = response.json()['chickens']
 df = pd.DataFrame(data)
+st.dataframe(df)
+
+# todo:: сделать проверку на пустоту полей
 
 if df.shape[0] == 0:
     st.write('Таблица с данными о партиях пуста. Добавьте для начала информацию о партиях.')
