@@ -245,9 +245,17 @@ class Counter:
                 time.sleep(10)
                 ret, imageFrame = self.webcam.read()
                 if not ret:
-                    st.error("Камера доступна, но не получает кадры по какой-то причине")
                     self.webcam.release()
-                    break
+                    time.sleep(10)
+                    ret, imageFrame = self.webcam.read()
+                    if not ret:
+                        self.webcam.release()
+                        time.sleep(10)
+                        ret, imageFrame = self.webcam.read()
+                        if not ret:
+                            st.error("Камера доступна, но не получает кадры по какой-то причине")
+                            self.webcam.release()
+                            break
 
             imageFrame, count = self.draw_contours_and_count(imageFrame, frame_count)
             all_count += count
