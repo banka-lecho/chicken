@@ -125,10 +125,11 @@ else:
                                          clean_cache=True,
                                          color="red")
             else:
-                cap = cv2.VideoCapture(stream_address)
+                cap = cv2.VideoCapture(stream_address, cv2.CAP_FFMPEG)
                 while not cap.isOpened():
                     st_empty.markdown("<span style='color:red'>ИДЁТ ПОДКЛЮЧЕНИЕ...</span>", unsafe_allow_html=True)
                 time.sleep(2)
+                cap.release()
                 st_empty.markdown("<span style='color:green'>ПОДКЛЮЧЕНИЕ ЕСТЬ</span>", unsafe_allow_html=True)
                 st.sidebar.header("Управление запуском")
 

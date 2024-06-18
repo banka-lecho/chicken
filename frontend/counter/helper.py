@@ -19,7 +19,7 @@ image_size = (1920, 1080)
 
 class Counter:
     def __init__(self, model, input_path, size_interval):
-        self.webcam = cv2.VideoCapture(input_path)
+        self.webcam = cv2.VideoCapture(input_path, cv2.CAP_FFMPEG)
         self.height = int(self.webcam.get(cv2.CAP_PROP_FRAME_HEIGHT))
         self.width = int(self.webcam.get(cv2.CAP_PROP_FRAME_WIDTH))
 
