@@ -18,9 +18,10 @@ image_size = (1920, 1080)
 
 
 class Counter:
-    def __init__(self, model, size_interval):
-        self.height = 0
-        self.width = 0
+    def __init__(self, model, input_path, size_interval):
+        self.webcam = cv2.VideoCapture(input_path)
+        self.height = int(self.webcam.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        self.width = int(self.webcam.get(cv2.CAP_PROP_FRAME_WIDTH))
 
         self.full_area = self.height * self.width
         self.model = model
@@ -220,7 +221,7 @@ class Counter:
 
         return frame, count_chicken
 
-    def display_video(self, input_path):
+    def display_video(self):
         count_chicken_sec = 0
         count_chicken_min = 0
         frame_count = 0
@@ -229,18 +230,24 @@ class Counter:
         all_count = st.session_state.all_count
         st_frame_image = st.empty()
         st_frame_text = st.empty()
-        webcam = cv2.VideoCapture(input_path)
-        self.height = int(webcam.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        self.width = int(webcam.get(cv2.CAP_PROP_FRAME_WIDTH))
         while st.session_state.video_running:
-            ret, imageFrame = webcam.read()
-            if not ret:
-                webcam.release()
+            if not self.webcam.isOpened():
+                self.webcam.release()
                 time.sleep(10)
-                ret, imageFrame = webcam.read()
+                if not self.webcam.isOpened():
+                    self.webcam.release()
+                    st.error("Камера недоступна")
+                    break
+
+            ret, imageFrame = self.webcam.read()
+            if not ret:
+                self.webcam.release()
+                time.sleep(10)
+                ret, imageFrame = self.webcam.read()
                 if not ret:
-                    webcam.release()
-                    return all_count
+                    st.error("Камера доступна, но не получает кадры по какой-то причине")
+                    self.webcam.release()
+                    break
 
             imageFrame, count = self.draw_contours_and_count(imageFrame, frame_count)
             all_count += count
@@ -268,7 +275,7 @@ class Counter:
                                      caption='Detected Video',
                                      channels="BGR",
                                      use_column_width=True, width=50)
-        webcam.release()
+        self.webcam.release()
 
 
 def run_counting(model_path, input_path):
@@ -277,8 +284,8 @@ def run_counting(model_path, input_path):
         model = YOLO(model_path)
         model.to(device)
 
-        counter = Counter(model, 120)
-        counter.display_video(input_path)
+        counter = Counter(model, input_path, 120)
+        counter.display_video()
 
     except Exception as ex:
         st.error(f"Не удалось загрузить модель детекции или недоступно ни CPU, ни GPU. Проверьте путь: {model_path}")

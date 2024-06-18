@@ -89,10 +89,10 @@ else:
     if response_camera.status_code == 200:
         sources = response_camera.json()
         sources = [(camera['name'], camera['rtsp_stream']) for camera in sources['cameras']]
-        stream_address = str(sources[0][1])
+        # stream_address = str(sources[0][1])
+        stream_address = str(settings.VIDEO_PATH)
         st.sidebar.write(f'КАМЕРА: {str(sources[0][0])}')
-        submit_button = st.sidebar.button('ПОДКЛЮЧИТЬСЯ К КАМЕРЕ', on_click=clicked, args=[1],
-                                          disabled=st.session_state.clicked[1])
+        submit_button = st.sidebar.button('ПОДКЛЮЧИТЬСЯ К КАМЕРЕ', on_click=clicked, args=[1])
         st_empty = st.empty()
         submit_button_count = None
         model_path = Path(settings.DETECTION_MODEL)
@@ -128,8 +128,7 @@ else:
                 cap = cv2.VideoCapture(stream_address)
                 while not cap.isOpened():
                     st_empty.markdown("<span style='color:red'>ИДЁТ ПОДКЛЮЧЕНИЕ...</span>", unsafe_allow_html=True)
-
-                cap.release()
+                time.sleep(2)
                 st_empty.markdown("<span style='color:green'>ПОДКЛЮЧЕНИЕ ЕСТЬ</span>", unsafe_allow_html=True)
                 st.sidebar.header("Управление запуском")
 
@@ -168,6 +167,5 @@ else:
                     send_message_clean_cache("Не удалось отправить запрос на вторичное добавление.",
                                              clean_cache=True,
                                              color="red")
-                st.session_state.clicked[3] = False
     else:
-        st.error('Камера не доступна')
+        st.write('Failed to get sources')
