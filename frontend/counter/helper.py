@@ -247,9 +247,9 @@ class Counter:
                 if not ret:
                     st.error("Камера доступна, но не получает кадры по какой-то причине")
                     # битрейт видеопотока
-                    st.write("Video Bitrate: {} kbps".format(cap.get(cv2.CAP_PROP_BITRATE)))
+                    st.write("Video Bitrate: {} kbps".format(self.webcam.get(cv2.CAP_PROP_BITRATE)))
                     # кодек видеопотока
-                    st.write("Video Codec: {}".format(cap.get(cv2.CAP_PROP_FOURCC)))
+                    st.write("Video Codec: {}".format(self.webcam.gпшеet(cv2.CAP_PROP_FOURCC)))
                     self.webcam.release()
                     break
 
