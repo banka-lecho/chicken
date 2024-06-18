@@ -247,7 +247,7 @@ class Counter:
                 if not ret:
                     st.error("Камера доступна, но не получает кадры по какой-то причине")
                     # разрешение видеопотока
-                    st.write("Resolution: {} x {}".format(frame.shape[1], frame.shape[0]))
+                    st.write("Resolution: {} x {}".format(imageFrame.shape[1], imageFrame.shape[0]))
                     # битрейт видеопотока
                     st.write("Video Bitrate: {} kbps".format(cap.get(cv2.CAP_PROP_BITRATE)))
                     # кодек видеопотока
