@@ -19,6 +19,7 @@ image_size = (1920, 1080)
 
 class Counter:
     def __init__(self, model, input_path, size_interval):
+        self.input_path = input_path
         self.webcam = cv2.VideoCapture(input_path, cv2.CAP_FFMPEG)
         self.height = int(self.webcam.get(cv2.CAP_PROP_FRAME_HEIGHT))
         self.width = int(self.webcam.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -245,13 +246,18 @@ class Counter:
                 time.sleep(10)
                 ret, imageFrame = self.webcam.read()
                 if not ret:
-                    st.error("Камера доступна, но не получает кадры по какой-то причине")
-                    # битрейт видеопотока
-                    st.write("Video Bitrate: {} kbps".format(self.webcam.get(cv2.CAP_PROP_BITRATE)))
-                    # кодек видеопотока
-                    st.write("Video Codec: {}".format(self.webcam.webcam(cv2.CAP_PROP_FOURCC)))
+                    st.write("Камера доступна, но не получает кадры по какой-то причине. Попробуем ее пересоздать")
                     self.webcam.release()
-                    break
+                    self.webcam = cv2.VideoCapture(self.input_path)
+                    ret, imageFrame = self.webcam.read()
+                    if not ret:
+                        st.error("Камера доступна, но не получает кадры по какой-то причине. Не получилось")
+                        # битрейт видеопотока
+                        st.write("Video Bitrate: {} kbps".format(self.webcam.get(cv2.CAP_PROP_BITRATE)))
+                        # кодек видеопотока
+                        st.write("Video Codec: {}".format(self.webcam.get(cv2.CAP_PROP_FOURCC)))
+                        self.webcam.release()
+                        break
 
             imageFrame, count = self.draw_contours_and_count(imageFrame, frame_count)
             all_count += count
