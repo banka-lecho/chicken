@@ -249,7 +249,7 @@ class Counter:
                     # битрейт видеопотока
                     st.write("Video Bitrate: {} kbps".format(self.webcam.get(cv2.CAP_PROP_BITRATE)))
                     # кодек видеопотока
-                    st.write("Video Codec: {}".format(self.webcam.gпшеet(cv2.CAP_PROP_FOURCC)))
+                    st.write("Video Codec: {}".format(self.webcam.webcam(cv2.CAP_PROP_FOURCC)))
                     self.webcam.release()
                     break
 
