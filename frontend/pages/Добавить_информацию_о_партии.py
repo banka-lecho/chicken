@@ -89,8 +89,7 @@ else:
     if response_camera.status_code == 200:
         sources = response_camera.json()
         sources = [(camera['name'], camera['rtsp_stream']) for camera in sources['cameras']]
-        # stream_address = str(sources[0][1])
-        stream_address = str(settings.VIDEO_PATH)
+        stream_address = str(sources[0][1])
         st.sidebar.write(f'КАМЕРА: {str(sources[0][0])}')
         submit_button = st.sidebar.button('ПОДКЛЮЧИТЬСЯ К КАМЕРЕ', on_click=clicked, args=[1])
         st_empty = st.empty()
