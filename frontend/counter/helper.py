@@ -231,6 +231,7 @@ class Counter:
         all_count = st.session_state.all_count
         st_frame_image = st.empty()
         st_frame_text = st.empty()
+        st_empty_bitrate = st.empty()
         while st.session_state.video_running:
             if not self.webcam.isOpened():
                 self.webcam.release()
@@ -241,6 +242,7 @@ class Counter:
                     break
 
             ret, imageFrame = self.webcam.read()
+            st_empty_bitrate.write(f'битрейт = {cv2.CAP_PROP_BITRATE}')
             if not ret:
                 self.webcam.release()
                 time.sleep(10)
@@ -280,7 +282,7 @@ class Counter:
             st_frame_text.text(
                 f'КОЛИЧЕСТВО ЦЫПЛЯТ В МИНУТУ: {speed_minute}\nКОЛИЧЕСТВО ЦЫПЛЯТ В СЕКУНДУ: {speed_second}\nОБЩЕЕ КОЛИЧЕСТВО ЦЫПЛЯТ: {all_count} ')
 
-            if frame_count % 4 == 0:
+            if frame_count % 2 == 0:
                 st_frame_image.image(imageFrame,
                                      caption='Detected Video',
                                      channels="BGR",
