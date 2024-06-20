@@ -242,7 +242,7 @@ class Counter:
                     break
 
             ret, imageFrame = self.webcam.read()
-            st_empty_bitrate.write(f'битрейт = {cv2.CAP_PROP_BITRATE}')
+            st_empty_bitrate.write(f'битрейт = {self.webcam.get(cv2.CAP_PROP_BITRATE)}')
             if not ret:
                 self.webcam.release()
                 time.sleep(10)
