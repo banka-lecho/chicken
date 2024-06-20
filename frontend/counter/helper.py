@@ -250,7 +250,12 @@ class Counter:
                 if not ret:
                     st.write("Камера доступна, но не получает кадры по какой-то причине. Попробуем ее пересоздать")
                     self.webcam.release()
+
+                    start = datetime.datetime.now()
                     self.webcam = cv2.VideoCapture(self.input_path)
+                    finish = datetime.datetime.now()
+
+                    st_empty_bitrate('Время работы: ' + str(finish - start))
                     ret, imageFrame = self.webcam.read()
                     if not ret:
                         st.error("Камера доступна, но не получает кадры по какой-то причине. Не получилось")
