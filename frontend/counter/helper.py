@@ -1,11 +1,12 @@
+import os
+
 import cv2
 import numpy as np
 from fastapi import FastAPI
 import streamlit as st
-import time
 import torch
 from counter.yolo.model import YOLO
-import datetime
+import time
 
 app = FastAPI()
 
@@ -223,76 +224,146 @@ class Counter:
 
         return frame, count_chicken
 
-    def display_video(self):
-        count_chicken_sec = 0
-        count_chicken_min = 0
-        frame_count = 0
-        speed_second = 0
-        speed_minute = 0
-        all_count = st.session_state.all_count
-        st_frame_image = st.empty()
-        st_frame_text = st.empty()
-        st_empty_bitrate = st.empty()
-        while st.session_state.video_running:
+    def check_camera_and_frames(self):
+        imageFrame = None
+        if not self.webcam.isOpened():
+            self.webcam.release()
+            time.sleep(10)
             if not self.webcam.isOpened():
                 self.webcam.release()
-                time.sleep(10)
-                if not self.webcam.isOpened():
-                    self.webcam.release()
-                    st.error("Камера недоступна")
-                    break
+                st.error("Камера недоступна. Проверьте подключение камеры к сети.")
+                return False, imageFrame
 
+        ret, imageFrame = self.webcam.read()
+        if not ret:
+            self.webcam.release()
+            time.sleep(10)
             ret, imageFrame = self.webcam.read()
-            st_empty_bitrate.write(f'битрейт = {self.webcam.get(cv2.CAP_PROP_BITRATE)}')
+
+        if not ret:
+            st.write("Камера доступна, но не получает кадры по какой-то причине. Попробуем ее пересоздать")
+            with open('results_camera.txt', 'a') as file:
+                file.write("Камера доступна, но не получает кадры по какой-то причине. Попробуем ее пересоздать")
+                file.write("\n")
+
+            start_time_camera = time.time()
+            self.webcam.release()
+            self.webcam = cv2.VideoCapture(self.input_path)
+            ret, imageFrame = self.webcam.read()
+            end_time_camera = time.time()
+            execution_time_iteration = end_time_camera - start_time_camera
+            with open('results_camera.txt', 'a') as file:
+                file.write(f"Время на подключение камеры = {execution_time_iteration}")
+                file.write("\n")
+
             if not ret:
-                self.webcam.release()
-                time.sleep(10)
-                ret, imageFrame = self.webcam.read()
-                if not ret:
-                    st.write("Камера доступна, но не получает кадры по какой-то причине. Попробуем ее пересоздать")
-                    self.webcam.release()
+                st.error("Камера доступна, но не получает кадры по какой-то причине.")
+                return False, imageFrame
+        else:
+            return True, imageFrame
 
-                    start = datetime.datetime.now()
-                    self.webcam = cv2.VideoCapture(self.input_path)
-                    finish = datetime.datetime.now()
+    # def display_video(self):
+    #     count_chicken_sec = 0
+    #     count_chicken_min = 0
+    #     frame_count = 0
+    #     speed_second = 0
+    #     speed_minute = 0
+    #     all_count = st.session_state.all_count
+    #     st_frame_image = st.empty()
+    #     st_frame_text = st.empty()
+    #     while st.session_state.video_running:
+    #         start_time = time.time()
+    #         answer_connect, imageFrame = self.check_camera_and_frames()
+    #         end_time_camera = time.time()
+    #         execution_time_camera = end_time_camera - start_time
+    #         with open('results_camera.txt', 'a') as file:
+    #             file.write(str(execution_time_camera))
+    #             file.write("\n")
+    #
+    #         if not answer_connect:
+    #             break
+    #
+    #         start_time_count = time.time()
+    #         imageFrame, count = self.draw_contours_and_count(imageFrame, frame_count)
+    #         end_time_count = time.time()
+    #         execution_time_count = end_time_count - start_time_count
+    #         with open('results_counting.txt', 'a') as file:
+    #             file.write(str(execution_time_count))
+    #             file.write("\n")
+    #
+    #         all_count += count
+    #         st.session_state.all_count = all_count
+    #         count_chicken_sec += count
+    #         count_chicken_min += count
+    #
+    #         if frame_count % int(self.fps) == 0:
+    #             speed_second = count_chicken_sec
+    #             count_chicken_min += count_chicken_sec
+    #             count_chicken_sec = 0
+    #
+    #         if frame_count % int(self.fpm) == 0:
+    #             count_chicken_min = all_count
+    #             speed_minute += count_chicken_min
+    #             count_chicken_min = 0
+    #
+    #         imageFrame = self.speed(imageFrame, speed_second, speed_minute, all_count, frame_count)
+    #         frame_count += 1
+    #         st_frame_text.text(
+    #             f'КОЛИЧЕСТВО ЦЫПЛЯТ В МИНУТУ: {speed_minute}\nКОЛИЧЕСТВО ЦЫПЛЯТ В СЕКУНДУ: {speed_second}\nОБЩЕЕ КОЛИЧЕСТВО ЦЫПЛЯТ: {all_count} ')
+    #
+    #         end_time_iteration = time.time()
+    #         execution_time_iteration = end_time_iteration - start_time
+    #         with open('results_iteration.txt', 'a') as file:
+    #             file.write(str(execution_time_iteration))
+    #             file.write("\n")
+    #
+    #         if frame_count % 4 == 0:
+    #             st_frame_image.image(imageFrame,
+    #                                  caption='Detected Video',
+    #                                  channels="BGR",
+    #                                  use_column_width=True, width=50)
+    #             end_time_iteration = time.time()
+    #             execution_time_iteration = end_time_iteration - start_time
+    #
+    #             with open('results_iteration_output.txt', 'a') as file:
+    #                 file.write(str(execution_time_iteration))
+    #                 file.write("\n")
+    #
+    #     self.webcam.release()
 
-                    st_empty_bitrate('Время работы: ' + str(finish - start))
-                    ret, imageFrame = self.webcam.read()
-                    if not ret:
-                        st.error("Камера доступна, но не получает кадры по какой-то причине. Не получилось")
-                        # битрейт видеопотока
-                        st.write("Video Bitrate: {} kbps".format(self.webcam.get(cv2.CAP_PROP_BITRATE)))
-                        # кодек видеопотока
-                        st.write("Video Codec: {}".format(self.webcam.get(cv2.CAP_PROP_FOURCC)))
-                        self.webcam.release()
-                        break
+    def display_video(self):
+        frame_count = 0
+        st_frame_image = st.empty()
+        while st.session_state.video_running:
+            start_time_image = time.time()
+            answer_connect, imageFrame = self.check_camera_and_frames()
+            end_time_image = time.time()
+            execution_time_image = end_time_image - start_time_image
+            with open('results_camera.txt', 'a') as file:
+                file.write(str(execution_time_image))
+                file.write("\n")
 
-            imageFrame, count = self.draw_contours_and_count(imageFrame, frame_count)
-            all_count += count
-            st.session_state.all_count = all_count
-            count_chicken_sec += count
-            count_chicken_min += count
+            if not answer_connect:
+                break
 
-            if frame_count % int(self.fps) == 0:
-                speed_second = count_chicken_sec
-                count_chicken_min += count_chicken_sec
-                count_chicken_sec = 0
+            end_time_iteration = time.time()
+            execution_time_iteration = end_time_iteration - start_time_image
+            with open('results_iteration.txt', 'a') as file:
+                file.write(str(execution_time_iteration))
+                file.write("\n")
 
-            if frame_count % int(self.fpm) == 0:
-                count_chicken_min = all_count
-                speed_minute += count_chicken_min
-                count_chicken_min = 0
-
-            imageFrame = self.speed(imageFrame, speed_second, speed_minute, all_count, frame_count)
-            frame_count += 1
-            st_frame_text.text(
-                f'КОЛИЧЕСТВО ЦЫПЛЯТ В МИНУТУ: {speed_minute}\nКОЛИЧЕСТВО ЦЫПЛЯТ В СЕКУНДУ: {speed_second}\nОБЩЕЕ КОЛИЧЕСТВО ЦЫПЛЯТ: {all_count} ')
-
-            if frame_count % 2 == 0:
+            if frame_count % 4 == 0:
                 st_frame_image.image(imageFrame,
                                      caption='Detected Video',
                                      channels="BGR",
                                      use_column_width=True, width=50)
+                end_time_iteration = time.time()
+                execution_time_iteration = end_time_iteration - start_time_image
+
+                with open('results_iteration_output.txt', 'a') as file:
+                    file.write(str(execution_time_iteration))
+                    file.write("\n")
+
         self.webcam.release()
 
 
@@ -304,7 +375,6 @@ def run_counting(model_path, input_path):
 
         counter = Counter(model, input_path, 120)
         counter.display_video()
-
     except Exception as ex:
         st.error(f"Не удалось загрузить модель детекции или недоступно ни CPU, ни GPU. Проверьте путь: {model_path}")
         st.error(ex)
