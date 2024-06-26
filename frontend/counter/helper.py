@@ -77,7 +77,7 @@ class Counter:
         end_draw_lines = time.time()
         execution_draw_lines = end_draw_lines - start_draw_lines
         with open('draw_lines.txt', 'a') as file:
-            file.write(execution_draw_lines)
+            file.write(str(execution_draw_lines))
             file.write("\n")
 
     def draw_centers(self, frame, x, y, area):
@@ -94,7 +94,7 @@ class Counter:
         end_draw_centers = time.time()
         execution_draw_centers = end_draw_centers - start_draw_centers
         with open('draw_centers.txt', 'a') as file:
-            file.write(execution_draw_centers)
+            file.write(str(execution_draw_centers))
             file.write("\n")
 
     def speed(self, frame, speed_second, speed_minute, count, frame_count):
@@ -136,7 +136,7 @@ class Counter:
         end_speed = time.time()
         execution_speed = end_speed - start_speed
         with open('speed_function.txt', 'a') as file:
-            file.write(execution_speed)
+            file.write(str(execution_speed))
             file.write("\n")
         return frame
 
@@ -161,7 +161,7 @@ class Counter:
         end_check_chicken_behind = time.time()
         execution_check_chicken_behind = end_check_chicken_behind - start_check_chicken_behind
         with open('check_chicken_behind.txt', 'a') as file:
-            file.write(execution_check_chicken_behind)
+            file.write(str(execution_check_chicken_behind))
             file.write("\n")
         return False
 
@@ -176,14 +176,14 @@ class Counter:
                     end_check_chicken_front = time.time()
                     execution_check_chicken_front = end_check_chicken_front - start_check_chicken_front
                     with open('check_chicken_front.txt', 'a') as file:
-                        file.write(execution_check_chicken_front)
+                        file.write(str(execution_check_chicken_front))
                         file.write("\n")
                     return True
 
         end_check_chicken_front = time.time()
         execution_check_chicken_front = end_check_chicken_front - start_check_chicken_front
         with open('check_chicken_front.txt', 'a') as file:
-            file.write(execution_check_chicken_front)
+            file.write(str(execution_check_chicken_front))
             file.write("\n")
         return False
 
@@ -263,7 +263,7 @@ class Counter:
         end_draw_contours_and_count = time.time()
         execution_contours_and_count = end_draw_contours_and_count - start_draw_contours_and_count
         with open('draw_contours_and_count.txt', 'a') as file:
-            file.write(execution_contours_and_count)
+            file.write(str(execution_contours_and_count))
             file.write("\n")
         return frame, count_chicken
 
