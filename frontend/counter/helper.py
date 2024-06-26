@@ -289,7 +289,7 @@ class Counter:
             end_check_camera_and_frames = time.time()
             execution_check_camera_and_frames = end_check_camera_and_frames - start_check_camera_and_frames
             with open('check_camera_and_frames.txt', 'a') as file:
-                file.write(execution_check_camera_and_frames)
+                file.write(str(execution_check_camera_and_frames))
                 file.write("\n")
             with open('results_camera.txt', 'a') as file:
                 file.write("Камера доступна, но не получает кадры по какой-то причине. Попробуем ее пересоздать")
@@ -305,7 +305,7 @@ class Counter:
             end_check_camera_and_frames = time.time()
             execution_check_camera_and_frames = end_check_camera_and_frames - start_check_camera_and_frames
             with open('check_camera_and_frames.txt', 'a') as file:
-                file.write(execution_check_camera_and_frames)
+                file.write(str(execution_check_camera_and_frames))
                 file.write("\n")
             with open('results_camera.txt', 'a') as file:
                 file.write(f"Время на подключение камеры = {execution_time_iteration}")
@@ -316,14 +316,14 @@ class Counter:
                 end_check_camera_and_frames = time.time()
                 execution_check_camera_and_frames = end_check_camera_and_frames - start_check_camera_and_frames
                 with open('check_camera_and_frames.txt', 'a') as file:
-                    file.write(execution_check_camera_and_frames)
+                    file.write(str(execution_check_camera_and_frames))
                     file.write("\n")
                 return False, imageFrame
         else:
             end_check_camera_and_frames = time.time()
             execution_check_camera_and_frames = end_check_camera_and_frames - start_check_camera_and_frames
             with open('check_camera_and_frames.txt', 'a') as file:
-                file.write(execution_check_camera_and_frames)
+                file.write(str(execution_check_camera_and_frames))
                 file.write("\n")
             return True, imageFrame
 
