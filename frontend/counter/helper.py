@@ -62,6 +62,7 @@ class Counter:
 
     def draw_lines(self, frame):
         """Draw line on frame"""
+        start_draw_lines = time.time()
         cv2.line(frame, self.line_point1_left_left, self.line_point2_left_left, (255, 0, 0), 10)
         cv2.line(frame, self.line_point1_left, self.line_point2_left, (255, 0, 0), 10)
         cv2.line(frame, self.line_point1_middle, self.line_point2_middle, (255, 0, 0), 10)
@@ -73,8 +74,15 @@ class Counter:
         cv2.line(frame, (0, self.divide_to_three - 300), (
             self.width, self.divide_to_three - 300), (0, 0, 255), 10)
 
+        end_draw_lines = time.time()
+        execution_draw_lines = end_draw_lines - start_draw_lines
+        with open('draw_lines.txt', 'a') as file:
+            file.write(execution_draw_lines)
+            file.write("\n")
+
     def draw_centers(self, frame, x, y, area):
         """Draw rectangle of chicken"""
+        start_draw_centers = time.time()
         cv2.circle(frame, (x, y), 5, (255, 0, 0), -1)
         cv2.putText(frame,
                     f"Chicken area = {area}",
@@ -83,8 +91,14 @@ class Counter:
                     1.0,
                     (0, 0, 255)
                     )
+        end_draw_centers = time.time()
+        execution_draw_centers = end_draw_centers - start_draw_centers
+        with open('draw_centers.txt', 'a') as file:
+            file.write(execution_draw_centers)
+            file.write("\n")
 
     def speed(self, frame, speed_second, speed_minute, count, frame_count):
+        start_speed = time.time()
         frame = cv2.putText(frame,
                             f'frame_count = {frame_count}',
                             (self.width - 400, 160),
@@ -119,6 +133,11 @@ class Counter:
                             color_purple,
                             4
                             )
+        end_speed = time.time()
+        execution_speed = end_speed - start_speed
+        with open('speed_function.txt', 'a') as file:
+            file.write(execution_speed)
+            file.write("\n")
         return frame
 
     def check_lines(self, center_y):
@@ -132,26 +151,45 @@ class Counter:
 
     def check_chicken_behind(self, front_chic_center, index_interval, boxes, area):
         """Сheck if there is a chicken in behind"""
+        start_check_chicken_behind = time.time()
         for box in boxes:
             if box.conf[0] > 0.4 and self.full_area / area > 8:
                 behind_chic_center, y, _, _ = box.xywh[0]
                 line = self.check_lines(y)
                 if (0 < front_chic_center - behind_chic_center < 700) and line == index_interval:
                     return True
+        end_check_chicken_behind = time.time()
+        execution_check_chicken_behind = end_check_chicken_behind - start_check_chicken_behind
+        with open('check_chicken_behind.txt', 'a') as file:
+            file.write(execution_check_chicken_behind)
+            file.write("\n")
         return False
 
     def check_chicken_front(self, front_chic_center, index_interval, boxes, area):
         """Сheck if there is a chicken in front"""
+        start_check_chicken_front = time.time()
         for box in boxes:
             if box.conf[0] > 0.4 and self.full_area / area > 8:
                 behind_chic_center, y, _, _ = box.xywh[0]
                 line = self.check_lines(y)
                 if (700 < front_chic_center - behind_chic_center < 0) and line == index_interval:
+                    end_check_chicken_front = time.time()
+                    execution_check_chicken_front = end_check_chicken_front - start_check_chicken_front
+                    with open('check_chicken_front.txt', 'a') as file:
+                        file.write(execution_check_chicken_front)
+                        file.write("\n")
                     return True
+
+        end_check_chicken_front = time.time()
+        execution_check_chicken_front = end_check_chicken_front - start_check_chicken_front
+        with open('check_chicken_front.txt', 'a') as file:
+            file.write(execution_check_chicken_front)
+            file.write("\n")
         return False
 
     def draw_contours_and_count(self, frame, frame_count):
         """Draw contours of object on video"""
+        start_draw_contours_and_count = time.time()
         count_chicken = 0
         results = self.model.predict(frame, save=False, verbose=False)
         for result in results:
@@ -222,9 +260,15 @@ class Counter:
                                 second_interval_arr[index_interval] = False
                                 self.check_double_chic_first = False
 
+        end_draw_contours_and_count = time.time()
+        execution_contours_and_count = end_draw_contours_and_count - start_draw_contours_and_count
+        with open('draw_contours_and_count.txt', 'a') as file:
+            file.write(execution_contours_and_count)
+            file.write("\n")
         return frame, count_chicken
 
     def check_camera_and_frames(self):
+        start_check_camera_and_frames = time.time()
         imageFrame = None
         if not self.webcam.isOpened():
             self.webcam.release()
@@ -242,6 +286,11 @@ class Counter:
 
         if not ret:
             st.write("Камера доступна, но не получает кадры по какой-то причине. Попробуем ее пересоздать")
+            end_check_camera_and_frames = time.time()
+            execution_check_camera_and_frames = end_check_camera_and_frames - start_check_camera_and_frames
+            with open('check_camera_and_frames.txt', 'a') as file:
+                file.write(execution_check_camera_and_frames)
+                file.write("\n")
             with open('results_camera.txt', 'a') as file:
                 file.write("Камера доступна, но не получает кадры по какой-то причине. Попробуем ее пересоздать")
                 file.write("\n")
@@ -252,14 +301,30 @@ class Counter:
             ret, imageFrame = self.webcam.read()
             end_time_camera = time.time()
             execution_time_iteration = end_time_camera - start_time_camera
+
+            end_check_camera_and_frames = time.time()
+            execution_check_camera_and_frames = end_check_camera_and_frames - start_check_camera_and_frames
+            with open('check_camera_and_frames.txt', 'a') as file:
+                file.write(execution_check_camera_and_frames)
+                file.write("\n")
             with open('results_camera.txt', 'a') as file:
                 file.write(f"Время на подключение камеры = {execution_time_iteration}")
                 file.write("\n")
 
             if not ret:
                 st.error("Камера доступна, но не получает кадры по какой-то причине.")
+                end_check_camera_and_frames = time.time()
+                execution_check_camera_and_frames = end_check_camera_and_frames - start_check_camera_and_frames
+                with open('check_camera_and_frames.txt', 'a') as file:
+                    file.write(execution_check_camera_and_frames)
+                    file.write("\n")
                 return False, imageFrame
         else:
+            end_check_camera_and_frames = time.time()
+            execution_check_camera_and_frames = end_check_camera_and_frames - start_check_camera_and_frames
+            with open('check_camera_and_frames.txt', 'a') as file:
+                file.write(execution_check_camera_and_frames)
+                file.write("\n")
             return True, imageFrame
 
     def display_video(self):
