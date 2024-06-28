@@ -318,7 +318,7 @@ class Counter:
                 with open('check_camera_and_frames.txt', 'a') as file:
                     file.write(str(execution_check_camera_and_frames))
                     file.write("\n")
-                return False, imageFrame
+                return False, None
         else:
             end_check_camera_and_frames = time.time()
             execution_check_camera_and_frames = end_check_camera_and_frames - start_check_camera_and_frames
