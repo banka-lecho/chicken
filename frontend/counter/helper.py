@@ -307,92 +307,57 @@ class Counter:
                 file.write("\n")
             return True, imageFrame
 
-    # def display_video(self):
-    #     count_chicken_sec = 0
-    #     count_chicken_min = 0
-    #     frame_count = 0
-    #     speed_second = 0
-    #     speed_minute = 0
-    #     all_count = st.session_state.all_count
-    #     st_frame_image = st.empty()
-    #     st_frame_text = st.empty()
-    #     while st.session_state.video_running:
-    #         start_time = time.time()
-    #         answer_connect, imageFrame = self.check_camera_and_frames()
-    #         end_time_camera = time.time()
-    #         execution_time_camera = end_time_camera - start_time
-    #         with open('results_camera.txt', 'a') as file:
-    #             file.write(str(execution_time_camera))
-    #             file.write("\n")
-    #
-    #         if not answer_connect:
-    #             break
-    #
-    #         start_time_count = time.time()
-    #         imageFrame, count = self.draw_contours_and_count(imageFrame, frame_count)
-    #         end_time_count = time.time()
-    #         execution_time_count = end_time_count - start_time_count
-    #         with open('results_counting.txt', 'a') as file:
-    #             file.write(str(execution_time_count))
-    #             file.write("\n")
-    #
-    #         all_count += count
-    #         st.session_state.all_count = all_count
-    #         count_chicken_sec += count
-    #         count_chicken_min += count
-    #
-    #         if frame_count % int(self.fps) == 0:
-    #             speed_second = count_chicken_sec
-    #             count_chicken_min += count_chicken_sec
-    #             count_chicken_sec = 0
-    #
-    #         if frame_count % int(self.fpm) == 0:
-    #             count_chicken_min = all_count
-    #             speed_minute += count_chicken_min
-    #             count_chicken_min = 0
-    #
-    #         imageFrame = self.speed(imageFrame, speed_second, speed_minute, all_count, frame_count)
-    #         frame_count += 1
-    #         st_frame_text.text(
-    #             f'КОЛИЧЕСТВО ЦЫПЛЯТ В МИНУТУ: {speed_minute}\nКОЛИЧЕСТВО ЦЫПЛЯТ В СЕКУНДУ: {speed_second}\nОБЩЕЕ КОЛИЧЕСТВО ЦЫПЛЯТ: {all_count} ')
-    #
-    #         end_time_iteration = time.time()
-    #         execution_time_iteration = end_time_iteration - start_time
-    #         with open('results_iteration.txt', 'a') as file:
-    #             file.write(str(execution_time_iteration))
-    #             file.write("\n")
-    #
-    #         if frame_count % 4 == 0:
-    #             st_frame_image.image(imageFrame,
-    #                                  caption='Detected Video',
-    #                                  channels="BGR",
-    #                                  use_column_width=True, width=50)
-    #             end_time_iteration = time.time()
-    #             execution_time_iteration = end_time_iteration - start_time
-    #
-    #             with open('results_iteration_output.txt', 'a') as file:
-    #                 file.write(str(execution_time_iteration))
-    #                 file.write("\n")
-    #
-    #     self.webcam.release()
-
     def display_video(self):
+        count_chicken_sec = 0
+        count_chicken_min = 0
         frame_count = 0
+        speed_second = 0
+        speed_minute = 0
+        all_count = st.session_state.all_count
         st_frame_image = st.empty()
+        st_frame_text = st.empty()
         while st.session_state.video_running:
-            start_time_image = time.time()
+            start_time = time.time()
             answer_connect, imageFrame = self.check_camera_and_frames()
-            end_time_image = time.time()
-            execution_time_image = end_time_image - start_time_image
+            end_time_camera = time.time()
+            execution_time_camera = end_time_camera - start_time
             with open('results_camera.txt', 'a') as file:
-                file.write(str(execution_time_image))
+                file.write(str(execution_time_camera))
                 file.write("\n")
 
             if not answer_connect:
                 break
 
+            start_time_count = time.time()
+            imageFrame, count = self.draw_contours_and_count(imageFrame, frame_count)
+            end_time_count = time.time()
+            execution_time_count = end_time_count - start_time_count
+            with open('results_counting.txt', 'a') as file:
+                file.write(str(execution_time_count))
+                file.write("\n")
+
+            all_count += count
+            st.session_state.all_count = all_count
+            count_chicken_sec += count
+            count_chicken_min += count
+
+            if frame_count % int(self.fps) == 0:
+                speed_second = count_chicken_sec
+                count_chicken_min += count_chicken_sec
+                count_chicken_sec = 0
+
+            if frame_count % int(self.fpm) == 0:
+                count_chicken_min = all_count
+                speed_minute += count_chicken_min
+                count_chicken_min = 0
+
+            imageFrame = self.speed(imageFrame, speed_second, speed_minute, all_count, frame_count)
+            frame_count += 1
+            st_frame_text.text(
+                f'КОЛИЧЕСТВО ЦЫПЛЯТ В МИНУТУ: {speed_minute}\nКОЛИЧЕСТВО ЦЫПЛЯТ В СЕКУНДУ: {speed_second}\nОБЩЕЕ КОЛИЧЕСТВО ЦЫПЛЯТ: {all_count} ')
+
             end_time_iteration = time.time()
-            execution_time_iteration = end_time_iteration - start_time_image
+            execution_time_iteration = end_time_iteration - start_time
             with open('results_iteration.txt', 'a') as file:
                 file.write(str(execution_time_iteration))
                 file.write("\n")
@@ -400,15 +365,50 @@ class Counter:
             if frame_count % 4 == 0:
                 st_frame_image.image(imageFrame,
                                      caption='Detected Video',
-                                     channels="BGR", width=640)
+                                     channels="BGR",
+                                     use_column_width=True, width=640)
                 end_time_iteration = time.time()
-                execution_time_iteration = end_time_iteration - start_time_image
+                execution_time_iteration = end_time_iteration - start_time
 
                 with open('results_iteration_output.txt', 'a') as file:
                     file.write(str(execution_time_iteration))
                     file.write("\n")
 
         self.webcam.release()
+
+    # def display_video(self):
+    #     frame_count = 0
+    #     st_frame_image = st.empty()
+    #     while st.session_state.video_running:
+    #         start_time_image = time.time()
+    #         answer_connect, imageFrame = self.check_camera_and_frames()
+    #         end_time_image = time.time()
+    #         execution_time_image = end_time_image - start_time_image
+    #         with open('results_camera.txt', 'a') as file:
+    #             file.write(str(execution_time_image))
+    #             file.write("\n")
+    #
+    #         if not answer_connect:
+    #             break
+    #
+    #         end_time_iteration = time.time()
+    #         execution_time_iteration = end_time_iteration - start_time_image
+    #         with open('results_iteration.txt', 'a') as file:
+    #             file.write(str(execution_time_iteration))
+    #             file.write("\n")
+    #
+    #         if frame_count % 4 == 0:
+    #             st_frame_image.image(imageFrame,
+    #                                  caption='Detected Video',
+    #                                  channels="BGR", width=640)
+    #             end_time_iteration = time.time()
+    #             execution_time_iteration = end_time_iteration - start_time_image
+    #
+    #             with open('results_iteration_output.txt', 'a') as file:
+    #                 file.write(str(execution_time_iteration))
+    #                 file.write("\n")
+    #
+    #     self.webcam.release()
 
 
 def run_counting(model_path, input_path):
