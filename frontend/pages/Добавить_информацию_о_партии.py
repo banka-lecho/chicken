@@ -21,7 +21,6 @@ st.set_page_config(
 )
 st.title("Подсчёт объектов")
 st.sidebar.header("Детекция и подсчёт объектов")
-
 # аутентификация
 if not check_password():
     st.stop()
@@ -34,13 +33,10 @@ def clicked(button):
 # инициализация сессионных переменных
 if 'end_of_stream' not in st.session_state:
     st.session_state.end_of_stream = 0
-
 if 'all_count' not in st.session_state:
     st.session_state.all_count = 0
-
 if 'clicked' not in st.session_state:
     st.session_state.clicked = {1: False, 2: False, 3: False}
-
 if 'video_running' not in st.session_state:
     st.session_state.video_running = False
 
@@ -65,7 +61,6 @@ df = pd.DataFrame(data)
 response_chickens = requests.get('http://backend:9032/chickens/')
 data_chickens = response_chickens.json()['chickens']
 df_chickens = pd.DataFrame(data_chickens)
-
 count_chickens = 0
 if df.shape[0] == 0:
     st.write(
@@ -75,7 +70,6 @@ else:
     line_number = st.sidebar.number_input("Введите номер линии", min_value=0, step=1, format="%d")
     cross_ = st.sidebar.text_input("Введите номер кросс")
     number_machine = st.sidebar.number_input("Введите номер машины", min_value=0, step=1, format="%d")
-
     if "check_duplicate" not in st.session_state:
         st.session_state.check_duplicate = True
         if not df_chickens.empty and batch_id in df_chickens['batch_id'].values:
@@ -83,19 +77,17 @@ else:
                 "Поле с данным номером партии уже существует. Добавьте другой номер или отредактируйте поле.",
                 clean_cache=True,
                 color="red")
-
     response_camera = requests.get('http://backend:9032/camera')
-
     if response_camera.status_code == 200:
         sources = response_camera.json()
         sources = [(camera['name'], camera['rtsp_stream']) for camera in sources['cameras']]
-        stream_address = str(sources[0][1])
+        # stream_address = str(sources[0][1])
+        stream_address = str(settings.VIDEO_PATH)
         st.sidebar.write(f'КАМЕРА: {str(sources[0][0])}')
         submit_button = st.sidebar.button('ПОДКЛЮЧИТЬСЯ К КАМЕРЕ', on_click=clicked, args=[1])
         st_empty = st.empty()
         submit_button_count = None
         model_path = Path(settings.DETECTION_MODEL)
-
         if st.session_state.clicked[1]:
             if "response_count" not in st.session_state:
                 st.session_state.response_count = True
@@ -108,7 +100,6 @@ else:
                                                      "machine_id": number_machine,
                                                      "count": count_chickens,
                                                      "cross_": cross_})
-
                 if response_count.status_code == 200:
                     send_message_clean_cache("Запрос на первичное добавление отправлен успешно.",
                                              clean_cache=False,
@@ -118,13 +109,12 @@ else:
                         "Не удалось отправить запрос на первичное добавление. Возможно произошла дупликация номера партии",
                         clean_cache=True,
                         color="red")
-
             if batch_id == "" or line_number == "" or cross_ == "" or number_machine == "":
                 send_message_clean_cache("Заполните все поля",
                                          clean_cache=True,
                                          color="red")
             else:
-                cap = cv2.VideoCapture(stream_address, cv2.CAP_FFMPEG)
+                cap = cv2.VideoCapture(stream_address)
                 while not cap.isOpened():
                     st_empty.markdown("<span style='color:red'>ИДЁТ ПОДКЛЮЧЕНИЕ...</span>", unsafe_allow_html=True)
                 time.sleep(2)
@@ -134,7 +124,6 @@ else:
 
             if 'start' not in st.session_state:
                 st.session_state.start = datetime.datetime.now()
-
             # Создание кнопки для запуска/остановки видеопотока
             if st.sidebar.button('ПУСК'):
                 toggle_video()
@@ -144,12 +133,10 @@ else:
                                               json={"batch_id": batch_id,
                                                     "field": "count",
                                                     "new_value": count})
-
                 if response_count.status_code != 200:
                     send_message_clean_cache("Не удалось отправить запрос на изменение",
                                              clean_cache=True,
                                              color="red")
-
             button_send = st.sidebar.button('Отправить данные', on_click=clicked, args=[3],
                                             disabled=st.session_state.clicked[3])
             if st.session_state.clicked[3]:

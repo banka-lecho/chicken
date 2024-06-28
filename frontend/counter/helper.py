@@ -191,7 +191,7 @@ class Counter:
         """Draw contours of object on video"""
         start_draw_contours_and_count = time.time()
         count_chicken = 0
-        results = self.model.predict(frame, save=False, verbose=False)
+        results = self.model.predict(frame, save=False, verbose=False, imgsz=640)
         for result in results:
             boxes = result.boxes
             for box in boxes:
@@ -420,8 +420,7 @@ class Counter:
             if frame_count % 4 == 0:
                 st_frame_image.image(imageFrame,
                                      caption='Detected Video',
-                                     channels="BGR",
-                                     use_column_width=True, width=50)
+                                     channels="BGR", width=640)
                 end_time_iteration = time.time()
                 execution_time_iteration = end_time_iteration - start_time_image
 
