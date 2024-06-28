@@ -60,26 +60,6 @@ class Counter:
         self.fpm = self.fps * 60
         self.line_back = np.array([False, False, False])
 
-    def draw_lines(self, frame):
-        """Draw line on frame"""
-        start_draw_lines = time.time()
-        cv2.line(frame, self.line_point1_left_left, self.line_point2_left_left, (255, 0, 0), 10)
-        cv2.line(frame, self.line_point1_left, self.line_point2_left, (255, 0, 0), 10)
-        cv2.line(frame, self.line_point1_middle, self.line_point2_middle, (255, 0, 0), 10)
-        cv2.line(frame, self.line_point1_right, self.line_point2_right, (255, 0, 0), 10)
-
-        cv2.line(frame, (0, self.divide_to_three + 130), (
-            self.width, self.divide_to_three + 130), (0, 0, 255), 10)
-
-        cv2.line(frame, (0, self.divide_to_three - 300), (
-            self.width, self.divide_to_three - 300), (0, 0, 255), 10)
-
-        end_draw_lines = time.time()
-        execution_draw_lines = end_draw_lines - start_draw_lines
-        with open('draw_lines.txt', 'a') as file:
-            file.write(str(execution_draw_lines))
-            file.write("\n")
-
     def draw_centers(self, frame, x, y, area):
         """Draw rectangle of chicken"""
         start_draw_centers = time.time()
@@ -318,7 +298,7 @@ class Counter:
                 with open('check_camera_and_frames.txt', 'a') as file:
                     file.write(str(execution_check_camera_and_frames))
                     file.write("\n")
-                return False, None
+                return False, 0
         else:
             end_check_camera_and_frames = time.time()
             execution_check_camera_and_frames = end_check_camera_and_frames - start_check_camera_and_frames
