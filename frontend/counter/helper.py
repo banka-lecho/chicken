@@ -365,8 +365,7 @@ class Counter:
             if frame_count % 4 == 0:
                 st_frame_image.image(imageFrame,
                                      caption='Detected Video',
-                                     channels="BGR",
-                                     use_column_width=True, width=640)
+                                     channels="BGR", width=640)
                 end_time_iteration = time.time()
                 execution_time_iteration = end_time_iteration - start_time
 
