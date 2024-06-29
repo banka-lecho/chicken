@@ -8,3 +8,4 @@ frontend/pages/utils/.DS_Store
 .idea
 frontend/counter/yolo
 frontend/pages/utils/weights/chickens.mp4
+.chicken_venv/
