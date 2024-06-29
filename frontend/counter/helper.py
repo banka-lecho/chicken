@@ -72,6 +72,7 @@ class Counter:
                     )
 
     def speed(self, frame, speed_second, speed_minute, count, frame_count):
+        """Print speed indicators"""
         frame = cv2.putText(frame,
                             f'frame_count = {frame_count}',
                             (self.width - 400, 160),
@@ -135,10 +136,10 @@ class Counter:
                     return True
         return False
 
-    def draw_contours_and_count(self, frame, frame_count):
-        """Draw contours of object on video"""
+    def count_chickens(self, frame, frame_count):
+        """Count chickens"""
         count_chicken = 0
-        results = self.model.predict(frame, save=False, verbose=False)
+        results = self.model.predict(frame, save=False, verbose=False, imgsz=640)
         for result in results:
             boxes = result.boxes
             for box in boxes:
@@ -200,16 +201,19 @@ class Counter:
         return frame, count_chicken
 
     def display_video(self):
+        # инициализация показателей
         count_chicken_sec = 0
         count_chicken_min = 0
         frame_count = 0
         speed_second = 0
         speed_minute = 0
+        # инициализация сессионной переменной
         all_count = st.session_state.all_count
+        # нужно для вывода показателей не на видео, а на странице
         st_frame_image = st.empty()
         st_frame_text = st.empty()
-        st_empty_bitrate = st.empty()
         while st.session_state.video_running:
+            # проверка на доступность камеры
             if not self.webcam.isOpened():
                 self.webcam.release()
                 time.sleep(10)
@@ -219,30 +223,30 @@ class Counter:
                     break
 
             ret, imageFrame = self.webcam.read()
-            st_empty_bitrate.write(f'битрейт = {cv2.CAP_PROP_BITRATE}')
-            st_empty_bitrate.write(f'битрейт = {self.webcam.get(cv2.CAP_PROP_BITRATE)}')
+            # проверка на корректность возвращаемого кадра
             if not ret:
                 self.webcam.release()
                 time.sleep(10)
                 ret, imageFrame = self.webcam.read()
                 if not ret:
+                    # пересоздаю камеру
                     st.write("Камера доступна, но не получает кадры по какой-то причине. Попробуем ее пересоздать")
                     self.webcam.release()
                     self.webcam = cv2.VideoCapture(self.input_path)
                     ret, imageFrame = self.webcam.read()
                     if not ret:
                         st.error("Камера доступна, но не получает кадры по какой-то причине. Не получилось")
-                        # битрейт видеопотока
-                        st.write("Video Bitrate: {} kbps".format(self.webcam.get(cv2.CAP_PROP_BITRATE)))
-                        # кодек видеопотока
-                        st.write("Video Codec: {}".format(self.webcam.get(cv2.CAP_PROP_FOURCC)))
                         self.webcam.release()
                         break
-            imageFrame, count = self.draw_contours_and_count(imageFrame, frame_count)
+
+            # вызываю функцию подсчета
+            imageFrame, count = self.count_chickens(imageFrame, frame_count)
             all_count += count
             st.session_state.all_count = all_count
             count_chicken_sec += count
             count_chicken_min += count
+
+            # сохраняю в переменные, отвечающие за показатели по минутам и секундам
             if frame_count % int(self.fps) == 0:
                 speed_second = count_chicken_sec
                 count_chicken_min += count_chicken_sec
@@ -251,15 +255,20 @@ class Counter:
                 count_chicken_min = all_count
                 speed_minute += count_chicken_min
                 count_chicken_min = 0
+
+            # отрисовываю эти показатели на видео
             imageFrame = self.speed(imageFrame, speed_second, speed_minute, all_count, frame_count)
             frame_count += 1
+            # вывожу эти показатели на странице
             st_frame_text.text(
                 f'КОЛИЧЕСТВО ЦЫПЛЯТ В МИНУТУ: {speed_minute}\nКОЛИЧЕСТВО ЦЫПЛЯТ В СЕКУНДУ: {speed_second}\nОБЩЕЕ КОЛИЧЕСТВО ЦЫПЛЯТ: {all_count} ')
+
+            # через кадр вывожу на страницу
             if frame_count % 2 == 0:
                 st_frame_image.image(imageFrame,
                                      caption='Detected Video',
                                      channels="BGR",
-                                     use_column_width=True, width=50)
+                                     use_column_width=True)
         self.webcam.release()
 
 

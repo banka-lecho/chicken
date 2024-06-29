@@ -21,12 +21,19 @@ st.set_page_config(
 )
 st.title("Подсчёт объектов")
 st.sidebar.header("Детекция и подсчёт объектов")
+
 # аутентификация
 if not check_password():
     st.stop()
 
 
 def clicked(button):
+    """
+    Функция для изменения состояния сессионой переменной, которая отвечает за переключение трех кнопок
+    - кнопка "Подключиться к камере"
+    - кнопка "Пуск"
+    - кнопка "Отправить данные"
+    """
     st.session_state.clicked[button] = True
 
 
@@ -42,6 +49,7 @@ if 'video_running' not in st.session_state:
 
 
 def send_message_clean_cache(message: str, clean_cache=False, color="red"):
+    """Функция для отображения ошибки/успеха операции и освобождения сессионых переменных"""
     st.markdown(
         f"<span style='color:{color}'>{message}</span>", unsafe_allow_html=True)
     if clean_cache:
@@ -50,8 +58,8 @@ def send_message_clean_cache(message: str, clean_cache=False, color="red"):
         st.stop()
 
 
-# Функция для запуска/остановки видеопотока
 def toggle_video():
+    """Функция для запуска/остановки видеопотока"""
     st.session_state.video_running = not st.session_state.video_running
 
 
@@ -66,6 +74,7 @@ if df.shape[0] == 0:
     st.write(
         'Чтобы внести информацию о партии, нужно добавить камеру. Вы можете это сделать  на странице "✍️ Добавить камеру"')
 else:
+    # ввод данных
     batch_id = st.sidebar.text_input("Введите номер партии")
     line_number = st.sidebar.number_input("Введите номер линии", min_value=0, step=1, format="%d")
     cross_ = st.sidebar.text_input("Введите номер кросс")
@@ -77,6 +86,8 @@ else:
                 "Поле с данным номером партии уже существует. Добавьте другой номер или отредактируйте поле.",
                 clean_cache=True,
                 color="red")
+
+    # проверка камеры
     response_camera = requests.get('http://backend:9032/camera')
     if response_camera.status_code == 200:
         sources = response_camera.json()
@@ -89,6 +100,13 @@ else:
         model_path = Path(settings.DETECTION_MODEL)
         if st.session_state.clicked[1]:
             if "response_count" not in st.session_state:
+                # проверка на пустоту
+                if batch_id == "" or line_number == "" or cross_ == "" or number_machine == "":
+                    send_message_clean_cache("Заполните все поля",
+                                             clean_cache=True,
+                                             color="red")
+
+                # отправление первичных данных
                 st.session_state.response_count = True
                 response_count = requests.post('http://backend:9032/chickens/',
                                                json={"batch_id": batch_id,
@@ -99,31 +117,26 @@ else:
                                                      "machine_id": number_machine,
                                                      "count": count_chickens,
                                                      "cross_": cross_})
-                if response_count.status_code == 200:
-                    send_message_clean_cache("Запрос на первичное добавление отправлен успешно.",
-                                             clean_cache=False,
-                                             color="green")
-                else:
+
+                if response_count.status_code != 200:
                     send_message_clean_cache(
                         "Не удалось отправить запрос на первичное добавление. Возможно произошла дупликация номера партии",
                         clean_cache=True,
                         color="red")
-            if batch_id == "" or line_number == "" or cross_ == "" or number_machine == "":
-                send_message_clean_cache("Заполните все поля",
-                                         clean_cache=True,
-                                         color="red")
             else:
+                # проверка жизнедеятельности камеры
                 cap = cv2.VideoCapture(stream_address)
                 while not cap.isOpened():
                     st_empty.markdown("<span style='color:red'>ИДЁТ ПОДКЛЮЧЕНИЕ...</span>", unsafe_allow_html=True)
                 time.sleep(2)
                 cap.release()
                 st_empty.markdown("<span style='color:green'>ПОДКЛЮЧЕНИЕ ЕСТЬ</span>", unsafe_allow_html=True)
-                st.sidebar.header("Управление запуском")
 
+            st.sidebar.header("Управление запуском")
             if 'start' not in st.session_state:
                 st.session_state.start = datetime.datetime.now()
-            # Создание кнопки для запуска/остановки видеопотока
+
+            # Создание кнопки для запуска/остановки видеопотока (при каждой остановке видеопотока в бд отправляются данные)
             if st.sidebar.button('ПУСК'):
                 toggle_video()
                 helper.run_counting(model_path, stream_address)
@@ -136,6 +149,7 @@ else:
                     send_message_clean_cache("Не удалось отправить запрос на изменение",
                                              clean_cache=True,
                                              color="red")
+            # создание кнопки "Отправить данные".
             button_send = st.sidebar.button('Отправить данные', on_click=clicked, args=[3],
                                             disabled=st.session_state.clicked[3])
             if st.session_state.clicked[3]:
@@ -143,10 +157,11 @@ else:
                 start = st.session_state.start.strftime("%Y-%m-%d %H:%M:%S")
                 finish = datetime.datetime.now()
                 finish = finish.strftime("%Y-%m-%d %H:%M:%S")
+                # поскольку в бд уже существует поле с нужным id, то я просто отправляю правильное время в бд
                 response = requests.put(f'http://backend:9032/chickens/{batch_id}/{start}/{finish}',
                                         json={batch_id: batch_id, "start_time": start, "end_time": finish})
                 if response.status_code == 200:
-                    send_message_clean_cache("Запрос на добавление вторичное отправлен успешно.",
+                    send_message_clean_cache("Запрос на добавление отправлен успешно.",
                                              clean_cache=True,
                                              color="green")
                 else:
@@ -154,4 +169,4 @@ else:
                                              clean_cache=True,
                                              color="red")
     else:
-        st.write('Failed to get sources')
+        st.write('Не удалось получить доступ к камере!')
